@@ -30,11 +30,6 @@ function extractActivePlugin(nodes) {
     let pluginNodes = [];
     nodes.forEach((node) => {
         let pluginObj = {};
-        // console.log(
-        //     node.childNodes[2].childNodes[3].childNodes[3].href.match(
-        //         "(?<=plugin=).*?(?=&TB_iframe)"
-        //     )
-        // );
         pluginObj["name"] = node.childNodes[1].children[0].innerText;
         pluginObj["version"] = node.childNodes[2].childNodes[3].innerText;
         pluginObj["version"] = pluginObj["version"].replace(

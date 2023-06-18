@@ -9,12 +9,6 @@
     "permissions": [
         "downloads"
     ],
-    "background": {
-        "matches": [
-            "<all_urls>"
-        ],
-        "service_worker": "background.js"
-    },
     "content_scripts": [
         {
             "matches": [

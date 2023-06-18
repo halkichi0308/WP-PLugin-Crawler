@@ -1,26 +1,26 @@
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     let pluginElement = document.querySelectorAll("#the-list > .active");
     let activePlugins = extractActivePlugin(pluginElement);
     let rawCSVContent = "Plugin,Version";
     activePlugins.forEach((plugin) => {
         rawCSVContent += "\n";
-        rawCSVContent += plugin["name"] + "," + plugin["version"];
+        rawCSVContent +=
+            plugin["name"] + "," + plugin["version"] + "," + plugin["url"];
     });
     sendResponse(pluginElement);
 
     (function () {
-        "use strict";
         document.body.insertAdjacentHTML(
             "afterEnd",
             `
-        <a id="myDownload" href="#" download="test.csv">ダウンロード</a>
+        <a id="_downloadTarget" href="#" download="plugin.csv">ダウンロード用一時リンク</a>
         `
         );
         document
-            .getElementById("myDownload")
+            .getElementById("_downloadTarget")
             .addEventListener("click", handleDownload(rawCSVContent));
-        document.getElementById("myDownload").click();
-        document.getElementById("myDownload").remove();
+        document.getElementById("_downloadTarget").click();
+        document.getElementById("_downloadTarget").remove();
     })();
 });
 
@@ -36,6 +36,11 @@ function extractActivePlugin(nodes) {
             /Version\s(.*?)\s.*?$/,
             "$1"
         );
+        pluginObj["url"] =
+            "https://ja.wordpress.org/plugins/" +
+            node.childNodes[2].childNodes[3].childNodes[3].href.match(
+                "(?<=plugin=).*?(?=&TB_iframe)"
+            )[0];
 
         pluginNodes.push(pluginObj);
     });
@@ -43,15 +48,16 @@ function extractActivePlugin(nodes) {
 }
 
 function handleDownload(rawCSVContent) {
+    const navigatorFilename = "plugins.csv";
     const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
     const blob = new Blob([bom, rawCSVContent], { type: "text/csv" });
 
     if (window.navigator.msSaveBlob) {
-        window.navigator.msSaveBlob(blob, "test.csv");
-        window.navigator.msSaveOrOpenBlob(blob, "test.csv");
+        window.navigator.msSaveBlob(blob, navigatorFilename);
+        window.navigator.msSaveOrOpenBlob(blob, navigatorFilename);
     } else {
         const url = window.URL.createObjectURL(blob);
-        document.getElementById("myDownload").href = url;
+        document.getElementById("_downloadTarget").href = url;
         setTimeout(() => {
             window.URL.revokeObjectURL(url);
         }, 1000);
